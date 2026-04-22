@@ -375,7 +375,7 @@ export default function Home() {
         {/* Materials Section */}
         <section className="mb-16 md:mb-20">
           <div className="flex justify-between items-center mb-5 md:mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold">Material Bekas Terbaru</h2>
+            <h2 className="text-2xl md:text-3xl font-bold">Material Terbaru</h2>
             <Link to="/materials" className="text-blue-600 text-xs md:text-sm font-medium hover:underline flex items-center">
               Lihat semua <i className="fas fa-chevron-right ml-1 text-[10px] md:text-xs"></i>
             </Link>
