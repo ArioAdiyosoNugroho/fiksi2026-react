@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: white;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  min-height: 100svh;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
