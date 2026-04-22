@@ -81,7 +81,6 @@ function AppRoutes() {
       {/* Pengepul */}
       <Route path="/collectors" element={<Collectors />} />
       <Route path="/collectors/:id" element={<CollectorDetail />} />
-        <Route path="collector-settings" element={<CollectorSettings />} />
 
       {/* Seller Routes */}
       <Route path="/seller" element={<SellerRoute><SellerLayout /></SellerRoute>}>
@@ -94,6 +93,7 @@ function AppRoutes() {
         <Route path="orders" element={<SellerOrders />} />
 
         {/* pengepul */}
+        <Route path="collector-settings" element={<CollectorSettings />} />
       </Route>
 
       {/* Fallback */}

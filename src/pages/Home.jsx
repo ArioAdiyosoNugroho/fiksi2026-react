@@ -1,5 +1,5 @@
 // src/pages/Home.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -10,67 +10,86 @@ import kainImg from '../assets/img/kain.png';
 import logamImg from '../assets/img/logam.png';
 import plastikImg from '../assets/img/plastik.png';
 
+/* ─────────────────────────────────────────────
+   SKELETON CARD
+───────────────────────────────────────────── */
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-[1.5rem] p-4 shadow-sm border border-gray-100 flex flex-col animate-pulse">
-      <div className="h-56 bg-gray-100 rounded-[1rem] mb-4"></div>
-      <div className="h-4 bg-gray-100 rounded w-1/3 mb-2"></div>
-      <div className="h-4 bg-gray-100 rounded w-3/4 mb-4"></div>
-      <div className="h-10 bg-gray-100 rounded-full"></div>
+    <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 flex-shrink-0 w-[175px] sm:w-auto animate-pulse">
+      <div className="h-44 bg-gray-100" />
+      <div className="p-3 space-y-2">
+        <div className="h-3 bg-gray-100 rounded w-1/2" />
+        <div className="h-4 bg-gray-100 rounded w-3/4" />
+        <div className="h-8 bg-gray-100 rounded-xl mt-3" />
+      </div>
     </div>
   );
 }
 
-// ✅ ProductCard yang diperbaiki (gambar full container)
+/* ─────────────────────────────────────────────
+   PRODUCT CARD  (horizontal scroll on mobile)
+───────────────────────────────────────────── */
+const BG_GRADIENTS = [
+  'from-cyan-50 to-blue-100',
+  'from-gray-100 to-slate-200',
+  'from-pink-50 to-rose-100',
+  'from-amber-50 to-orange-100',
+  'from-emerald-50 to-teal-100',
+  'from-indigo-50 to-blue-100',
+];
+
 function ProductCard({ item, type, onAddToCart }) {
   const navigate = useNavigate();
-  const gradients = [
-    'from-cyan-100 to-blue-200',
-    'from-gray-200 to-gray-300',
-    'from-pink-200 to-purple-300',
-    'from-yellow-100 to-orange-200',
-    'from-green-100 to-teal-200',
-    'from-indigo-100 to-blue-300',
-  ];
-  const gradient = gradients[item.id % gradients.length] || gradients[0];
+  const gradient = BG_GRADIENTS[(item.id ?? 0) % BG_GRADIENTS.length];
   const detailPath = type === 'material' ? `/materials/${item.id}` : `/products/${item.id}`;
 
   const getImageUrl = () => {
-    if (!item.images || item.images.length === 0) return null;
-    const firstImage = item.images[0];
-    if (firstImage && typeof firstImage === 'object' && firstImage.image_url) {
-      return firstImage.image_url;
-    }
-    if (typeof firstImage === 'string') return firstImage;
+    if (!item.images?.length) return null;
+    const first = item.images[0];
+    if (first?.image_url) return first.image_url;
+    if (typeof first === 'string') return first;
     return null;
   };
-
   const imageUrl = getImageUrl();
 
   return (
-    <div className="w-full bg-white rounded-[1.5rem] p-4 shadow-sm border border-gray-100 flex flex-col">
-      {/* Container gambar - diubah agar full */}
+    <div
+      className="flex-shrink-0 w-[175px] sm:w-auto bg-white rounded-2xl overflow-hidden border border-gray-100
+                 shadow-sm active:scale-[0.97] transition-transform duration-150"
+      style={{ WebkitTapHighlightColor: 'transparent' }}
+    >
+      {/* Image area */}
       <div
-        className={`relative bg-gradient-to-tr ${gradient} rounded-[1rem] h-56 mb-4 overflow-hidden cursor-pointer`}
+        className={`relative bg-gradient-to-br ${gradient} h-44 overflow-hidden cursor-pointer`}
         onClick={() => navigate(detailPath)}
       >
-        <span className="absolute top-3 left-3 bg-[#ffd233] text-gray-900 text-[10px] font-bold px-2 py-1 rounded z-10">
-          {type === 'material' ? 'Material' : 'Populer'}
+        {/* Badge */}
+        <span className="absolute top-2.5 left-2.5 z-10 bg-[#FFD233] text-gray-900 text-[9px] font-bold
+                         px-2 py-0.5 rounded-full tracking-wide">
+          {type === 'material' ? 'MATERIAL' : 'POPULER'}
         </span>
 
-        <div className="absolute top-3 right-3 flex flex-col space-y-2 z-10">
+        {/* Action buttons */}
+        <div className="absolute top-2.5 right-2.5 flex flex-col gap-1.5 z-10">
           <button
             onClick={(e) => { e.stopPropagation(); onAddToCart(item, type); }}
-            className="w-8 h-8 bg-black/50 hover:bg-black rounded-full text-white flex items-center justify-center text-xs backdrop-blur-sm transition-colors"
-            title="Tambah ke keranjang"
+            className="w-7 h-7 bg-black/40 hover:bg-black/70 active:bg-black rounded-lg
+                       text-white flex items-center justify-center backdrop-blur-sm transition-colors"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707
+                   1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
             </svg>
           </button>
-          <button className="w-8 h-8 bg-black/50 hover:bg-black rounded-full text-white flex items-center justify-center text-xs backdrop-blur-sm transition-colors">
+          <button
+            className="w-7 h-7 bg-black/40 hover:bg-black/70 active:bg-black rounded-lg
+                       text-white flex items-center justify-center backdrop-blur-sm transition-colors"
+          >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5
+                   0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </button>
         </div>
@@ -79,32 +98,42 @@ function ProductCard({ item, type, onAddToCart }) {
           <img
             src={imageUrl}
             alt={item.name}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover"
             onError={(e) => {
-              e.target.onerror = null;
               e.target.style.display = 'none';
-              const parent = e.target.parentElement;
-              if (parent) {
-                parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-5xl opacity-40 select-none">${type === 'material' ? '♻️' : '🛍️'}</div>`;
-              }
+              e.target.parentElement.insertAdjacentHTML(
+                'beforeend',
+                `<div class="w-full h-full flex items-center justify-center text-4xl opacity-30">
+                  ${type === 'material' ? '♻️' : '🛍️'}
+                </div>`
+              );
             }}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-5xl opacity-40 select-none">
+          <div className="w-full h-full flex items-center justify-center text-4xl opacity-30 select-none">
             {type === 'material' ? '♻️' : '🛍️'}
           </div>
         )}
       </div>
 
-      <div className="flex-1">
-        <h4 className="text-blue-600 font-bold text-xl mb-1">
+      {/* Body */}
+      <div className="p-3">
+        <p className="text-gray-500 text-[11px] font-semibold uppercase tracking-wide mb-0.5">
+          {type === 'material' ? 'Material' : 'Produk'}
+        </p>
+        <p className="text-gray-800 font-semibold text-[13px] leading-snug line-clamp-2 mb-2">{item.name}</p>
+        <p className="text-blue-600 font-bold text-base mb-3">
           Rp {Number(item.price).toLocaleString('id-ID')}
-        </h4>
-        <p className="text-gray-800 font-medium text-sm mb-4 line-clamp-2">{item.name}</p>
+        </p>
         <button
           onClick={() => onAddToCart(item, type)}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-full text-sm font-medium transition-colors"
+          className="w-full bg-blue-600 active:bg-blue-700 text-white py-2 rounded-xl text-[12px]
+                     font-bold transition-colors flex items-center justify-center gap-1.5"
         >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
           Beli Sekarang
         </button>
       </div>
@@ -112,315 +141,621 @@ function ProductCard({ item, type, onAddToCart }) {
   );
 }
 
+/* ─────────────────────────────────────────────
+   MAIN HOME PAGE
+───────────────────────────────────────────── */
 export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [products, setProducts]   = useState([]);
-  const [materials, setMaterials] = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [cartCount, setCartCount] = useState(0);
-  const [toast, setToast]         = useState(null);
 
+  const [products,  setProducts]  = useState([]);
+  const [materials, setMaterials] = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [cartCount, setCartCount] = useState(0);
+  const [toast,     setToast]     = useState(null);
+  const toastTimer = useRef(null);
+
+  /* fetch */
   useEffect(() => {
-    async function fetchData() {
+    (async () => {
       try {
-        const [prodRes, matRes] = await Promise.all([
-          api.get('/products?per_page=3'),
-          api.get('/materials?per_page=3'),
+        const [pr, mr] = await Promise.all([
+          api.get('/products?per_page=6'),
+          api.get('/materials?per_page=6'),
         ]);
-        setProducts(prodRes.data.data ?? []);
-        setMaterials(matRes.data.data ?? []);
+        setProducts(pr.data.data ?? []);
+        setMaterials(mr.data.data ?? []);
       } catch (err) {
         console.error('Gagal memuat data:', err);
       } finally {
         setLoading(false);
       }
-    }
-    fetchData();
+    })();
   }, []);
 
   useEffect(() => {
     if (!user) { setCartCount(0); return; }
-    api.get('/cart').then(res => {
-      const items = res.data?.items ?? [];
-      setCartCount(items.reduce((sum, i) => sum + i.quantity, 0));
-    }).catch(() => {});
+    api.get('/cart')
+      .then(res => {
+        const items = res.data?.items ?? [];
+        setCartCount(items.reduce((s, i) => s + i.quantity, 0));
+      })
+      .catch(() => {});
   }, [user]);
 
+  /* toast */
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 3000);
   };
 
   const handleAddToCart = async (item, type) => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
+    if (!user) { navigate('/login'); return; }
     try {
       await api.post('/cart', { type, id: item.id, quantity: 1 });
-      setCartCount(prev => prev + 1);
+      setCartCount(p => p + 1);
       showToast(`${item.name} ditambahkan ke keranjang!`);
-    } catch (err) {
+    } catch {
       showToast('Gagal menambahkan ke keranjang.', 'error');
-      console.error(err);
     }
   };
 
-  return (
-    <div className="bg-white text-gray-800" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  /* categories */
+  const CATEGORIES = [
+    { name: 'Logam',     emoji: '🔩', bg: 'bg-orange-50',  ring: 'ring-orange-200' },
+    { name: 'Plastik',   emoji: '♻️', bg: 'bg-blue-50',    ring: 'ring-blue-200'   },
+    { name: 'Kayu',      emoji: '🪵', bg: 'bg-emerald-50', ring: 'ring-emerald-200'},
+    { name: 'Kertas',    emoji: '📄', bg: 'bg-amber-50',   ring: 'ring-amber-200'  },
+    { name: 'Kaca',      emoji: '🪟', bg: 'bg-purple-50',  ring: 'ring-purple-200' },
+    { name: 'Elektronik',emoji: '💻', bg: 'bg-rose-50',    ring: 'ring-rose-200'   },
+    { name: 'Tekstil',   emoji: '👕', bg: 'bg-teal-50',    ring: 'ring-teal-200'   },
+    { name: 'Semua',     emoji: '🗂️', bg: 'bg-gray-100',   ring: 'ring-gray-300'   },
+  ];
 
+  return (
+    <div className="bg-[#F8F9FC] min-h-screen text-gray-900" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+
+      {/* Google Fonts */}
+      <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Syne:wght@700;800&display=swap"
+        rel="stylesheet"
+      />
+
+      {/* ── Toast ─────────────────────────── */}
       {toast && (
-        <div className={`fixed top-5 right-5 z-50 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium transition-all
-          ${toast.type === 'error' ? 'bg-red-500' : 'bg-green-500'}`}>
-          {toast.message}
+        <div
+          className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl shadow-2xl
+                      text-white text-sm font-semibold whitespace-nowrap transition-all
+                      ${toast.type === 'error' ? 'bg-rose-500' : 'bg-gray-900'}`}
+        >
+          {toast.type !== 'error' && '✅ '}{toast.message}
         </div>
       )}
 
-      <Navbar cartCount={cartCount} />
+      {/* ── Navbar (desktop) ──────────────── */}
+      <div className="hidden md:block">
+        <Navbar cartCount={cartCount} />
+      </div>
 
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Hero Section - tidak diubah */}
-        <section className="bg-[#f2f4f7] rounded-[2rem] p-6 sm:p-8 md:p-10 flex flex-col md:flex-row items-center justify-between relative overflow-hidden mb-16 min-h-[450px]">
-          <div className="w-full md:w-1/2 z-10 relative text-left">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-4 text-gray-900">
-              Jual & Beli <span className="text-blue-600">Material<br />& Produk</span> Daur<br />Ulang!
-            </h1>
-            <p className="text-gray-600 mb-8 max-w-md text-sm leading-relaxed">
-              Pengiriman cepat, layanan ramah, dan transaksi aman terjamin di resiik.id!
-            </p>
-            <div className="flex space-x-4">
-              <div className="bg-white rounded-2xl p-5 w-48 shadow-sm">
-                <h3 className="text-blue-600 font-bold text-xl leading-tight mb-2">Material dan produk<br />Pilihan</h3>
-                <p className="text-xs text-gray-800 mb-4 opacity-80">Beli material dan produk berkualitas dengan harga terbaik!</p>
-                <Link to="/materials" className="inline-block bg-blue-600 text-white text-xs px-4 py-2 rounded-full font-medium">
+      {/* ── Mobile Top Bar ────────────────── */}
+      <header
+        className="md:hidden sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 pt-3 pb-2"
+      >
+        {/* Logo + actions */}
+        <div className="flex items-center justify-between mb-2.5">
+          <span style={{ fontFamily: "'Syne', sans-serif" }} className="text-xl font-extrabold text-blue-600 tracking-tight">
+            resiik<span className="text-gray-900">.id</span>
+          </span>
+          <div className="flex items-center gap-2">
+            {/* Notification */}
+            <button className="relative w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center">
+              <svg className="w-4.5 h-4.5 w-[18px] h-[18px] text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-5-5.917V4a1 1 0 10-2
+                     0v1.083A6 6 0 006 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white text-[9px] font-bold
+                               rounded-full flex items-center justify-center">3</span>
+            </button>
+            {/* Cart */}
+            <button
+              onClick={() => navigate('/cart')}
+              className="relative w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center"
+            >
+              <svg className="w-[18px] h-[18px] text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold
+                                 rounded-full flex items-center justify-center">{cartCount}</span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Search bar */}
+        <button
+          onClick={() => navigate('/search')}
+          className="w-full flex items-center gap-2.5 bg-gray-100 rounded-2xl px-4 py-2.5 text-left"
+        >
+          <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
+          </svg>
+          <span className="text-gray-400 text-sm">Cari material & produk daur ulang...</span>
+        </button>
+      </header>
+
+      <div className="max-w-7xl mx-auto">
+
+        {/* ════════════════════════════════════
+            HERO
+        ════════════════════════════════════ */}
+        <section className="px-4 md:px-6 lg:px-8 pt-4 md:pt-8 mb-8 md:mb-16">
+
+          {/* Mobile hero */}
+          <div
+            className="md:hidden rounded-3xl overflow-hidden relative min-h-[220px]"
+            style={{ background: 'linear-gradient(135deg,#0D3694 0%,#1D6EFB 55%,#4D9EFF 100%)' }}
+          >
+            {/* Decorative circles */}
+            <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/5 rounded-full" />
+            <div className="absolute top-10 -right-4 w-24 h-24 bg-white/5 rounded-full" />
+
+            <div className="relative z-10 p-6 pb-0">
+              {/* Live badge */}
+              <div className="inline-flex items-center gap-1.5 bg-white/15 border border-white/20
+                              rounded-full px-3 py-1 mb-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-white text-[11px] font-semibold">Marketplace Daur Ulang #1</span>
+              </div>
+
+              <h1
+                style={{ fontFamily: "'Syne', sans-serif" }}
+                className="text-3xl font-extrabold text-white leading-tight mb-2"
+              >
+                Jual & Beli<br />
+                <span className="text-[#FFD233]">Material</span> Daur<br />
+                Ulang!
+              </h1>
+              <p className="text-white/70 text-sm leading-relaxed mb-5 max-w-[220px]">
+                Transaksi aman, pengiriman cepat, ramah lingkungan.
+              </p>
+
+              <div className="flex gap-2.5 mb-6">
+                <Link
+                  to="/materials"
+                  className="bg-white text-blue-600 text-[13px] font-bold px-5 py-2.5 rounded-xl
+                             shadow-lg active:scale-95 transition-transform"
+                >
                   Jelajahi
+                </Link>
+                <Link
+                  to="/ai-recycle"
+                  className="bg-white/15 border border-white/25 text-white text-[13px] font-semibold
+                             px-4 py-2.5 rounded-xl flex items-center gap-1.5 active:scale-95 transition-transform"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 2C12 2 12.6 7.2 15.5 10C18.4 12.8 22 12 22 12C22 12 16.8 12.6 14 15.5C11.2 18.4 12 22 12 22C12 22 11.4 16.8 8.5 14C5.6 11.2 2 12 2 12C2 12 7.2 11.4 10 8.5C12.8 5.6 12 2 12 2Z" />
+                  </svg>
+                  AI Recycle
                 </Link>
               </div>
-              {/* <div className="bg-white rounded-2xl p-5 w-48 shadow-sm">
-                <span className="bg-[#ffd233] text-gray-900 text-[10px] font-bold px-2 py-1 rounded mb-2 inline-block">20% OFF</span>
-                <h3 className="text-blue-600 font-bold text-lg leading-tight mb-4 mt-1">Untuk<br />Semua<br />Produk</h3>
-                <Link to="/products" className="inline-block bg-blue-600 text-white text-xs px-4 py-2 rounded-full font-medium">
-                  Jelajahi
-                </Link>
-              </div> */}
 
-              <div className="relative group overflow-hidden bg-slate-900 rounded-2xl p-6 w-52 shadow-xl transition-all duration-500 hover:shadow-blue-500/20 hover:-translate-y-1 border border-slate-800">
-                {/* Glow Effect Background */}
-                <div className="absolute -top-10 -right-10 w-24 h-24 bg-blue-600/20 blur-3xl rounded-full group-hover:bg-blue-500/30 transition-colors"></div>
+              {/* Stats strip */}
+              <div className="flex gap-5 border-t border-white/15 pt-4 pb-5">
+                {[['2K+', 'Produk'], ['500+', 'Penjual'], ['10K+', 'Transaksi']].map(([val, lbl]) => (
+                  <div key={lbl}>
+                    <p style={{ fontFamily: "'Syne', sans-serif" }} className="text-white font-bold text-lg leading-none">{val}</p>
+                    <p className="text-white/55 text-[11px] mt-0.5">{lbl}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
-                {/* Icon AI - Menggunakan SVG Bintang Minimalis sebelumnya */}
-                <div className="mb-4 text-blue-400">
-                  <svg 
-                    /* Menggunakan scale-110 atau 125 biasanya sudah cukup untuk kesan eksklusif. 
-                      Scale 200 (seperti di snippet kamu) mungkin akan terlalu menutupi teks.
-                    */
-                    className="w-8 h-8 transition-all duration-700 ease-in-out transform 
-                              group-hover:scale-125 group-hover:rotate-12 group-hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.8)]" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path 
-                      d="M12 2C12 2 12.6314 7.16642 15.5 10C18.3686 12.8336 22 12 22 12C22 12 16.8336 12.6314 14 15.5C11.1664 18.3686 12 22 12 22C12 22 11.3686 16.8336 8.5 14C5.63142 11.1664 2 12 2 12C2 12 7.16642 11.3686 10 8.5C12.8336 5.63142 12 2 12 2Z" 
-                      fill="currentColor"
-                    />
-                  </svg>
+          {/* Desktop hero (preserved original layout) */}
+          <div
+            className="hidden md:flex items-center justify-between relative overflow-hidden rounded-[2rem]
+                       min-h-[450px] p-10"
+            style={{ background: '#f2f4f7' }}
+          >
+            <div className="w-1/2 z-10">
+              <h1
+                style={{ fontFamily: "'Syne', sans-serif" }}
+                className="text-5xl lg:text-6xl font-extrabold leading-tight mb-4 text-gray-900"
+              >
+                Jual & Beli{' '}
+                <span className="text-blue-600">Material<br />& Produk</span> Daur<br />Ulang!
+              </h1>
+              <p className="text-gray-500 mb-8 max-w-md text-sm leading-relaxed">
+                Pengiriman cepat, layanan ramah, dan transaksi aman terjamin di resiik.id!
+              </p>
+              <div className="flex gap-4">
+                <div className="bg-white rounded-2xl p-5 w-48 shadow-sm">
+                  <h3 className="text-blue-600 font-bold text-xl leading-tight mb-2">Material dan produk Pilihan</h3>
+                  <p className="text-xs text-gray-600 mb-4">Beli material berkualitas dengan harga terbaik!</p>
+                  <Link to="/materials" className="inline-block bg-blue-600 text-white text-xs px-4 py-2 rounded-full font-medium">
+                    Jelajahi
+                  </Link>
                 </div>
-                {/* Content */}
-                <div className="relative z-10">
-                  <h3 className="text-white font-bold text-lg tracking-tight mb-1">AI Recycle</h3>
-                  <p className="text-[11px] text-slate-400 leading-relaxed mb-5">
+
+                <div className="relative overflow-hidden bg-slate-900 rounded-2xl p-6 w-52 shadow-xl border border-slate-800">
+                  <div className="mb-4 text-blue-400">
+                    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C12 2 12.6314 7.16642 15.5 10C18.3686 12.8336 22 12 22 12C22 12 16.8336 12.6314 14 15.5C11.1664 18.3686 12 22 12 22C12 22 11.3686 16.8336 8.5 14C5.63142 11.1664 2 12 2 12C2 12 7.16642 11.3686 10 8.5C12.8336 5.63142 12 2 12 2Z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-white font-bold text-lg mb-1">AI Recycle</h3>
+                  <p className="text-slate-400 text-xs leading-relaxed mb-5">
                     Identifikasi limbah secara cerdas dan temukan potensi kreatifnya.
                   </p>
-
-                  <Link 
-                    to="/ai-recycle" 
-                    className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-blue-400 group-hover:text-blue-300 transition-colors"
-                  >
+                  <Link to="/ai-recycle" className="text-blue-400 text-[11px] font-bold uppercase tracking-widest flex items-center gap-1">
                     Coba Sekarang
-                    <svg className="w-3 h-3 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>
                 </div>
               </div>
             </div>
-          </div>
-          <div className="hidden md:flex md:w-1/2 justify-end absolute right-0 bottom-0 h-full">
-            <img
-              src={womenBuyingImg}
-              alt="Resiik Marketplace"
-              className="h-full object-cover object-top drop-shadow-2xl z-0"
-            />
+            <div className="absolute right-0 bottom-0 h-full flex items-end">
+              <img src={womenBuyingImg} alt="Resiik" className="h-full object-cover object-top drop-shadow-2xl" />
+            </div>
           </div>
         </section>
 
-        {/* Categories Section - Ultra Clean & Premium */}
-        <section className="mb-16 py-4">
-          <div className="flex justify-between items-end mb-6">
+        {/* ════════════════════════════════════
+            PROMO BANNER (mobile only)
+        ════════════════════════════════════ */}
+        <section className="md:hidden px-4 mb-6">
+          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl px-4 py-3.5
+                          flex items-center justify-between">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Kategori Populer</h2>
-              <p className="text-gray-500 text-sm mt-1">Pilih jenis material atau produk yang Anda butuhkan</p>
+              <p className="text-white font-bold text-sm">Gratis Ongkir Hari Ini! 🚚</p>
+              <p className="text-white/75 text-xs mt-0.5">Min. pembelian Rp 150.000</p>
             </div>
-            <Link to="/products" className="hidden md:flex items-center text-blue-600 font-semibold hover:text-blue-700 transition-colors">
-              Semua Kategori <i className="fas fa-arrow-right ml-2 text-xs"></i>
-            </Link>
+            <div className="bg-white/20 border border-dashed border-white/50 rounded-lg px-3 py-1.5">
+              <p className="text-white text-xs font-bold tracking-widest">RESIIK25</p>
+            </div>
+          </div>
+        </section>
+
+        {/* ════════════════════════════════════
+            CATEGORIES
+        ════════════════════════════════════ */}
+        <section className="mb-8 md:mb-16">
+          <div className="px-4 md:px-6 lg:px-8 flex items-center justify-between mb-4">
+            <h2 style={{ fontFamily: "'Syne', sans-serif" }} className="text-xl md:text-3xl font-bold tracking-tight">
+              Kategori
+            </h2>
+            <Link to="/products" className="text-blue-600 text-sm font-semibold">Semua →</Link>
           </div>
 
-          {/* Quick Access Section - Monochrome to Color Reveal */}
-          <div className="flex overflow-x-auto pb-8 pt-4 mb-6 no-scrollbar gap-4 md:gap-0 md:justify-between w-full snap-x px-2">            {[
-              { name: 'Logam', icon: 'fa-cube', hoverText: 'group-hover:text-orange-500', hoverBorder: 'group-hover:border-orange-200', hoverBg: 'group-hover:bg-orange-50' },
-              { name: 'Plastik', icon: 'fa-recycle', hoverText: 'group-hover:text-blue-500', hoverBorder: 'group-hover:border-blue-200', hoverBg: 'group-hover:bg-blue-50' },
-              { name: 'Kayu', icon: 'fa-tree', hoverText: 'group-hover:text-emerald-500', hoverBorder: 'group-hover:border-emerald-200', hoverBg: 'group-hover:bg-emerald-50' },
-              { name: 'Kertas', icon: 'fa-file-alt', hoverText: 'group-hover:text-amber-500', hoverBorder: 'group-hover:border-amber-200', hoverBg: 'group-hover:bg-amber-50' },
-              { name: 'Kaca', icon: 'fa-wine-glass', hoverText: 'group-hover:text-purple-500', hoverBorder: 'group-hover:border-purple-200', hoverBg: 'group-hover:bg-purple-50' },
-              { name: 'Elektronik', icon: 'fa-microchip', hoverText: 'group-hover:text-rose-500', hoverBorder: 'group-hover:border-rose-200', hoverBg: 'group-hover:bg-rose-50' },
-              { name: 'Tekstil', icon: 'fa-shirt', hoverText: 'group-hover:text-teal-500', hoverBorder: 'group-hover:border-teal-200', hoverBg: 'group-hover:bg-teal-50' },
-              { name: 'Semua', icon: 'fa-th-large', hoverText: 'group-hover:text-gray-900', hoverBorder: 'group-hover:border-gray-300', hoverBg: 'group-hover:bg-gray-100' },
-            ].map((cat, i) => (
-              <Link 
-                key={i} 
-                to="/products" 
-                className="flex flex-col items-center group min-w-[76px] snap-center outline-none"
+          {/* Horizontal scroll pill chips */}
+          <div className="flex gap-3 overflow-x-auto px-4 md:px-6 lg:px-8 pb-2 no-scrollbar">
+            {CATEGORIES.map((cat, i) => (
+              <Link
+                key={i}
+                to="/products"
+                className={`flex-shrink-0 flex flex-col items-center gap-2 active:scale-95 transition-transform`}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
               >
-                {/* Circle Icon - Very Subtle Shadow, Changes on Hover */}
-                <div className={`relative w-[60px] h-[60px] md:w-16 md:h-16 bg-white rounded-full flex items-center justify-center mb-3 
-                  border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] 
-                  transition-all duration-300 ease-out
-                  group-hover:shadow-[0_10px_20px_rgba(0,0,0,0.06)] group-hover:-translate-y-1
-                  ${cat.hoverBorder} ${cat.hoverBg}`}
-                >
-                  <i className={`fas ${cat.icon} text-xl text-gray-400 transition-colors duration-300 ${cat.hoverText}`}></i>
+                <div className={`w-[58px] h-[58px] ${cat.bg} ring-1 ${cat.ring} rounded-2xl
+                                 flex items-center justify-center text-2xl`}>
+                  {cat.emoji}
                 </div>
-                
-                {/* Label - Clean Typography */}
-                <span className="text-[13px] font-semibold text-gray-500 group-hover:text-gray-900 transition-colors duration-300">
-                  {cat.name}
-                </span>
+                <span className="text-[11px] font-semibold text-gray-600 whitespace-nowrap">{cat.name}</span>
               </Link>
             ))}
           </div>
-        
-          {/* Featured Categories Grid - Clean & Consistent */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto md:h-[450px]">
-            
-            {/* 1. KATEGORI LOGAM - Kartu Utama Kiri */}
-            <div className="md:col-span-7 bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem] relative overflow-hidden group shadow-lg">
-              <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-transparent to-transparent z-0"></div>
-              
+        </section>
+
+        {/* ════════════════════════════════════
+            FEATURED CATEGORIES GRID
+        ════════════════════════════════════ */}
+        <section className="px-4 md:px-6 lg:px-8 mb-8 md:mb-16">
+          <div className="flex items-center justify-between mb-4">
+            <h2 style={{ fontFamily: "'Syne', sans-serif" }} className="text-xl md:text-3xl font-bold tracking-tight">
+              Pilihan Kategori
+            </h2>
+          </div>
+
+          {/* Mobile: stacked cards */}
+          <div className="flex flex-col gap-3 md:hidden">
+            {/* Logam - Big card */}
+            <Link
+              to="/materials?q=logam"
+              className="relative overflow-hidden rounded-3xl min-h-[170px] flex flex-col justify-between p-5 active:scale-[0.98] transition-transform"
+              style={{ background: 'linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)' }}
+            >
+              <div>
+                <span className="bg-white/10 border border-white/20 text-white text-[10px] font-bold
+                                 px-3 py-1 rounded-full uppercase tracking-wider">Premium Quality</span>
+                <h3 style={{ fontFamily: "'Syne', sans-serif" }}
+                    className="text-white text-2xl font-extrabold mt-2 leading-tight">
+                  Material Logam<br />&amp; Besi Industri
+                </h3>
+              </div>
+              <span className="inline-flex items-center gap-1.5 bg-white/15 border border-white/25
+                               text-white text-xs font-bold px-4 py-2 rounded-xl w-fit">
+                Lihat Produk →
+              </span>
+              {/* decorative emoji */}
+              <span className="absolute right-4 bottom-2 text-7xl opacity-10 select-none pointer-events-none">⚙️</span>
+            </Link>
+
+            {/* Plastik + Tekstil: side by side */}
+            <div className="grid grid-cols-2 gap-3">
+              <Link
+                to="/materials?q=plastik"
+                className="relative bg-blue-50 rounded-2xl p-4 overflow-hidden min-h-[130px] flex flex-col justify-between active:scale-[0.97] transition-transform"
+              >
+                <div>
+                  <h4 style={{ fontFamily: "'Syne', sans-serif" }} className="text-blue-800 font-bold text-base leading-tight">Limbah Plastik</h4>
+                  <p className="text-blue-600/70 text-[11px] mt-1 leading-snug">HDPE, PET & LDPE</p>
+                </div>
+                <span className="mt-3 inline-flex items-center gap-1 bg-blue-600 text-white text-[11px] font-bold
+                                 px-3 py-1.5 rounded-lg w-fit">
+                  Lihat →
+                </span>
+                <span className="absolute -right-3 -bottom-3 text-5xl opacity-15 select-none">♻️</span>
+              </Link>
+
+              <Link
+                to="/products?q=tekstil"
+                className="relative bg-pink-50 rounded-2xl p-4 overflow-hidden min-h-[130px] flex flex-col justify-between active:scale-[0.97] transition-transform"
+              >
+                <div>
+                  <h4 style={{ fontFamily: "'Syne', sans-serif" }} className="text-pink-800 font-bold text-base leading-tight">Limbah Tekstil</h4>
+                  <p className="text-pink-600/70 text-[11px] mt-1 leading-snug">Kain perca & pakaian</p>
+                </div>
+                <span className="mt-3 inline-flex items-center gap-1 bg-pink-500 text-white text-[11px] font-bold
+                                 px-3 py-1.5 rounded-lg w-fit">
+                  Lihat →
+                </span>
+                <span className="absolute -right-3 -bottom-3 text-5xl opacity-15 select-none">👕</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Desktop: original 12-col grid */}
+          <div className="hidden md:grid md:grid-cols-12 gap-6 h-[450px]">
+            <div className="col-span-7 bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem]
+                            relative overflow-hidden group shadow-lg">
+              <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-transparent to-transparent" />
               <div className="absolute top-8 left-8 z-20 max-w-[60%]">
-                <span className="bg-white/10 backdrop-blur-sm text-white text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-semibold mb-4 inline-block border border-white/20">
+                <span className="bg-white/10 backdrop-blur-sm text-white text-[10px] uppercase tracking-wider
+                                 px-3 py-1 rounded-full font-semibold mb-4 inline-block border border-white/20">
                   Premium Quality
                 </span>
-                <h3 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">Material Logam<br/>& Besi Industri</h3>
-                {/* Tombol seragam: hover biru primary */}
-                <Link 
-                  to="/materials?q=logam" 
-                  className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm hover:bg-blue-600 hover:text-white text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all duration-300 border border-white/30 hover:border-blue-600"
-                >
-                  Explore Product <i className="fas fa-arrow-right text-xs"></i>
+                <h3 style={{ fontFamily: "'Syne', sans-serif" }}
+                    className="text-4xl font-extrabold text-white mb-4 leading-tight">
+                  Material Logam<br />&amp; Besi Industri
+                </h3>
+                <Link to="/materials?q=logam"
+                  className="inline-flex items-center gap-2 bg-white/20 hover:bg-blue-600 text-white
+                             font-semibold px-5 py-2.5 rounded-xl text-sm transition-all border border-white/30">
+                  Explore Product →
                 </Link>
               </div>
-
-              <img 
-                src={logamImg} 
-                alt="Logam Waste" 
-                className="absolute right-[-10%] bottom-[-5%] w-3/4 h-auto object-contain z-10 transition-transform duration-700 ease-in-out group-hover:scale-110 group-hover:-rotate-3 opacity-90" 
-              />
+              <img src={logamImg} alt="Logam" className="absolute right-[-10%] bottom-[-5%] w-3/4 object-contain z-10
+                                                         group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-700 opacity-90" />
             </div>
 
-            {/* Secondary Column (Kanan) */}
-            <div className="md:col-span-5 grid grid-rows-2 gap-6">
-              
-              {/* 2. KATEGORI PLASTIK - Atas Kanan */}
-              <div className="bg-gray-50 rounded-[2.5rem] relative overflow-hidden group border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">
+            <div className="col-span-5 grid grid-rows-2 gap-6">
+              <div className="bg-gray-50 rounded-[2.5rem] relative overflow-hidden group border border-gray-100 hover:shadow-lg transition-all">
                 <div className="absolute inset-0 p-8 z-20 flex flex-col justify-center">
-                  <h3 className="text-2xl font-extrabold text-gray-800 mb-2">Limbah Plastik</h3>
-                  <p className="text-gray-500 text-sm mb-4 max-w-[180px] leading-relaxed">Daur ulang plastik HDPE, PET, & LDPE.</p>
-                  <Link 
-                    to="/materials?q=plastik" 
-                    className="inline-flex items-center gap-2 bg-gray-200 hover:bg-blue-600 hover:text-white text-gray-800 font-semibold px-4 py-2 rounded-xl text-sm w-fit transition-all duration-300"
-                  >
-                    Explore Product <i className="fas fa-arrow-right text-xs"></i>
+                  <h3 style={{ fontFamily: "'Syne', sans-serif" }} className="text-2xl font-extrabold text-gray-800 mb-2">Limbah Plastik</h3>
+                  <p className="text-gray-500 text-sm mb-4">Daur ulang plastik HDPE, PET, & LDPE.</p>
+                  <Link to="/materials?q=plastik"
+                    className="inline-flex items-center gap-2 bg-gray-200 hover:bg-blue-600 hover:text-white
+                               text-gray-800 font-semibold px-4 py-2 rounded-xl text-sm w-fit transition-all">
+                    Explore Product →
                   </Link>
                 </div>
-                <img 
-                  src={plastikImg}
-                  alt="Plastic Waste" 
-                  className="absolute right-[-20px] bottom-[-20px] w-44 h-44 object-contain z-10 opacity-80 group-hover:scale-110 transition-transform duration-500" 
-                />
+                <img src={plastikImg} alt="Plastik"
+                  className="absolute right-[-20px] bottom-[-20px] w-44 h-44 object-contain z-10 opacity-80 group-hover:scale-110 transition-transform duration-500" />
               </div>
 
-              {/* 3. KATEGORI TEKSTIL - Bawah Kanan */}
-              <div className="bg-gray-50 rounded-[2.5rem] relative overflow-hidden group border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">
+              <div className="bg-gray-50 rounded-[2.5rem] relative overflow-hidden group border border-gray-100 hover:shadow-lg transition-all">
                 <div className="absolute inset-0 p-8 z-20 flex flex-col justify-center">
-                  <h3 className="text-2xl font-extrabold text-gray-800 mb-2">Limbah Tekstil</h3>
-                  <p className="text-gray-500 text-sm mb-4 max-w-[180px] leading-relaxed">Sisa kain perca & pakaian layak guna.</p>
-                  <Link 
-                    to="/products?q=tekstil" 
-                    className="inline-flex items-center gap-2 bg-gray-200 hover:bg-blue-600 hover:text-white text-gray-800 font-semibold px-4 py-2 rounded-xl text-sm w-fit transition-all duration-300"
-                  >
-                    Explore Product <i className="fas fa-arrow-right text-xs"></i>
+                  <h3 style={{ fontFamily: "'Syne', sans-serif" }} className="text-2xl font-extrabold text-gray-800 mb-2">Limbah Tekstil</h3>
+                  <p className="text-gray-500 text-sm mb-4">Sisa kain perca & pakaian layak guna.</p>
+                  <Link to="/products?q=tekstil"
+                    className="inline-flex items-center gap-2 bg-gray-200 hover:bg-blue-600 hover:text-white
+                               text-gray-800 font-semibold px-4 py-2 rounded-xl text-sm w-fit transition-all">
+                    Explore Product →
                   </Link>
                 </div>
-                <img 
-                  src={kainImg}
-                  alt="Textile Waste" 
-                  className="absolute right-[-20px] bottom-[-20px] w-44 h-44 object-contain z-10 opacity-80 group-hover:scale-110 transition-transform duration-500" 
-                />
+                <img src={kainImg} alt="Tekstil"
+                  className="absolute right-[-20px] bottom-[-20px] w-44 h-44 object-contain z-10 opacity-80 group-hover:scale-110 transition-transform duration-500" />
               </div>
-
             </div>
-          </div>
-        
-          {/* Mobile "See All" Button */}
-          <div className="mt-6 md:hidden">
-            <Link to="/products" className="w-full flex justify-center items-center py-3.5 bg-white border border-gray-200 rounded-xl text-gray-700 font-semibold text-sm shadow-sm active:bg-gray-50 transition-colors">
-              Lihat Semua Kategori <i className="fas fa-chevron-right ml-2 text-[10px]"></i>
-            </Link>
           </div>
         </section>
-        
-        {/* Products Section */}
-        <section className="mb-20">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-3xl font-bold">Produk Bulan Ini</h2>
-            <Link to="/products" className="text-blue-600 text-sm font-medium hover:underline flex items-center">
-              Lihat semua <i className="fas fa-chevron-right ml-1 text-xs"></i>
-            </Link>
+
+        {/* ════════════════════════════════════
+            AI RECYCLE BANNER (mobile only)
+        ════════════════════════════════════ */}
+        <section className="md:hidden px-4 mb-8">
+          <Link
+            to="/ai-recycle"
+            className="flex items-center justify-between bg-gray-900 rounded-2xl px-5 py-4 active:scale-[0.98] transition-transform"
+          >
+            <div>
+              <p style={{ fontFamily: "'Syne', sans-serif" }} className="text-white font-bold text-base">AI Recycle ✨</p>
+              <p className="text-gray-400 text-xs mt-0.5 leading-relaxed max-w-[200px]">
+                Identifikasi limbah secara cerdas & temukan potensinya
+              </p>
+            </div>
+            <div className="bg-blue-600 rounded-xl w-10 h-10 flex items-center justify-center flex-shrink-0 ml-3">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="white">
+                <path d="M9 5l7 7-7 7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              </svg>
+            </div>
+          </Link>
+        </section>
+
+        {/* ════════════════════════════════════
+            PRODUCTS – horizontal scroll mobile
+        ════════════════════════════════════ */}
+        <section className="mb-8 md:mb-16">
+          <div className="px-4 md:px-6 lg:px-8 flex items-center justify-between mb-4">
+            <h2 style={{ fontFamily: "'Syne', sans-serif" }} className="text-xl md:text-3xl font-bold tracking-tight">
+              Produk Bulan Ini
+            </h2>
+            <Link to="/products" className="text-blue-600 text-sm font-semibold">Semua →</Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+
+          {/* Mobile: horizontal scroll */}
+          <div className="flex md:hidden gap-3.5 overflow-x-auto px-4 pb-2 no-scrollbar">
+            {loading
+              ? Array(4).fill(0).map((_, i) => <SkeletonCard key={i} />)
+              : products.map(p => (
+                  <ProductCard key={p.id} item={p} type="product" onAddToCart={handleAddToCart} />
+                ))
+            }
+          </div>
+
+          {/* Desktop: 3-col grid */}
+          <div className="hidden md:grid grid-cols-3 gap-6 px-6 lg:px-8">
             {loading
               ? Array(3).fill(0).map((_, i) => <SkeletonCard key={i} />)
-              : products.map((p) => (
+              : products.slice(0, 3).map(p => (
                   <ProductCard key={p.id} item={p} type="product" onAddToCart={handleAddToCart} />
                 ))
             }
           </div>
         </section>
 
-        {/* Materials Section */}
-        <section className="mb-20">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-3xl font-bold">Material Bekas Terbaru</h2>
-            <Link to="/materials" className="text-blue-600 text-sm font-medium hover:underline flex items-center">
-              Lihat semua <i className="fas fa-chevron-right ml-1 text-xs"></i>
-            </Link>
+        {/* ════════════════════════════════════
+            MATERIALS
+        ════════════════════════════════════ */}
+        <section className="mb-28 md:mb-20">
+          <div className="px-4 md:px-6 lg:px-8 flex items-center justify-between mb-4">
+            <h2 style={{ fontFamily: "'Syne', sans-serif" }} className="text-xl md:text-3xl font-bold tracking-tight">
+              Material Terbaru
+            </h2>
+            <Link to="/materials" className="text-blue-600 text-sm font-semibold">Semua →</Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+
+          {/* Mobile: horizontal scroll */}
+          <div className="flex md:hidden gap-3.5 overflow-x-auto px-4 pb-2 no-scrollbar">
+            {loading
+              ? Array(4).fill(0).map((_, i) => <SkeletonCard key={i} />)
+              : materials.map(m => (
+                  <ProductCard key={m.id} item={m} type="material" onAddToCart={handleAddToCart} />
+                ))
+            }
+          </div>
+
+          {/* Desktop: 3-col grid */}
+          <div className="hidden md:grid grid-cols-3 gap-6 px-6 lg:px-8">
             {loading
               ? Array(3).fill(0).map((_, i) => <SkeletonCard key={i} />)
-              : materials.map((m) => (
+              : materials.slice(0, 3).map(m => (
                   <ProductCard key={m.id} item={m} type="material" onAddToCart={handleAddToCart} />
                 ))
             }
           </div>
         </section>
+
+      </div>{/* /max-w-7xl */}
+
+      {/* Desktop footer */}
+      <div className="hidden md:block">
+        <Footer />
       </div>
-      <Footer />
+
+      {/* ════════════════════════════════════
+          MOBILE BOTTOM NAV
+      ════════════════════════════════════ */}
+      <nav
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-100
+                   flex items-center justify-around px-2 pt-2 pb-safe"
+        style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
+      >
+        {[
+          {
+            label: 'Beranda', to: '/', active: true,
+            icon: (
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-[22px] h-[22px]">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+            ),
+          },
+          {
+            label: 'Produk', to: '/products', active: false,
+            icon: (
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-[22px] h-[22px]">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            ),
+          },
+          // Center button: Cart
+          null,
+          {
+            label: 'Material', to: '/materials', active: false,
+            icon: (
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-[22px] h-[22px]">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            ),
+          },
+          {
+            label: 'Akun', to: user ? '/profile' : '/login', active: false,
+            icon: (
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-[22px] h-[22px]">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            ),
+          },
+        ].map((item, i) => {
+          // Center cart button
+          if (item === null) {
+            return (
+              <button
+                key="cart"
+                onClick={() => navigate('/cart')}
+                className="relative -mt-6 w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center
+                           shadow-lg shadow-blue-600/40 active:scale-95 transition-transform"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="white" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2}
+                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 text-white text-[10px] font-bold
+                                   rounded-full flex items-center justify-center border-2 border-white">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            );
+          }
+          return (
+            <Link
+              key={item.label}
+              to={item.to}
+              className="flex flex-col items-center gap-1 min-w-[48px]"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              <span className={item.active ? 'text-blue-600' : 'text-gray-400'}>{item.icon}</span>
+              <span className={`text-[10px] font-semibold ${item.active ? 'text-blue-600' : 'text-gray-400'}`}>
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+
     </div>
   );
 }

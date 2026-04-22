@@ -11,7 +11,6 @@ export default function SellerLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // ✅ Izinkan seller dan collector
     if (user && user.role !== 'seller' && user.role !== 'collector') {
       navigate('/');
     }
