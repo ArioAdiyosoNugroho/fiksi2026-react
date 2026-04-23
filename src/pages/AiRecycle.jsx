@@ -267,7 +267,7 @@ export default function AiRecycle() {
                   ) : (
                     <>
                       <div className="absolute w-full z-20" style={{ height: '2px', background: 'linear-gradient(to right, transparent, #2563eb, transparent)', animation: 'scanAi 2s linear infinite' }} />
-                      <img src="https://images.unsplash.com/photo-1591193512858-12ee99c38285?q=80&w=800" className="w-full h-full object-cover opacity-40" alt="Scan trash" />
+                      {/* <img src="https://images.unsplash.com/photo-1591193512858-12ee99c38285?q=80&w=800" className="w-full h-full object-cover opacity-40" alt="Scan trash" /> */}
                       <div className="absolute inset-0 flex flex-col items-center justify-center z-30 px-4">
                         <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 mb-3 transition-transform ${dragOver ? 'scale-125' : 'hover:scale-110'}`}>
                           <svg className="w-7 h-7 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
