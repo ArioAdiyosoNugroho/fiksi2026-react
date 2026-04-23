@@ -3,7 +3,8 @@ import { useState, useRef, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/api$/, '');
+// Strip /api dari akhir agar tidak double /api/api
+const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/api$/, '');
 
 const difficultyColor = {
   'Mudah': 'bg-green-100 text-green-700',
@@ -153,7 +154,7 @@ export default function AiRecycle() {
       const headers = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const res = await fetch(`${API_URL}/ai/analyze-trash`, {
+      const res = await fetch(`${BASE_URL}/api/ai/analyze-trash`, {
         method: 'POST',
         headers,
         body: formData,
@@ -677,7 +678,7 @@ export default function AiRecycle() {
             {result.uploaded_image && (
               <div className="mt-8 p-4 bg-slate-50 rounded-2xl flex items-center gap-4">
                 <img
-                  src={`${API_URL}${result.uploaded_image}`}
+                  src={`${BASE_URL}${result.uploaded_image}`}
                   alt="Uploaded"
                   className="w-16 h-16 rounded-xl object-cover flex-shrink-0"
                   onError={(e) => { e.target.style.display = 'none'; }}
